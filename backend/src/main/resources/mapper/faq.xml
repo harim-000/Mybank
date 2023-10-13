@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.backend.mapper.faq">
+    <insert id="insertFaq" parameterType="com.example.backend.domain.Faq">
+        INSERT INTO             /* [질문계시판 입력] FaqMapper.insertFaq */
+                    faq         /* 질문계시판 테이블 */
+                    (user_id    /* 질문계시글 작성자 아이디 */
+                  , title       /* 질문계시글 제목 */
+                  , content     /* 질문계시글 내용 */
+                  , reg_date    /* 질문계시글 등록일 */
+                  , open        /* 질문계시글 공개여부 */
+                  , mod_date)   /* 질문계시글 수정일 */
+        VALUES
+                    (#{user_id}
+                  , #{title}
+                  , #{content}
+                  , #{reg_date}
+                  , #{open}
+                  , #{reg_date})
+    </insert>
+    <select id="getFaqList" parameterType="map" resultType="com.example.backend.domain.Faq">
+    <![CDATA[
+        SELECT              /* [질문계시판 조회] FaqMapper.getFaqList */
+               idx          /* 질문계시글 인덱스 */
+             , user_id      /* 질문계시글 작성자 아이디 */
+             , title        /* 질문계시글 제목 */
+             , content      /* 질문계시글 내용 */
+             , reg_date     /* 질문계시글 등록일 */
+             , mod_date     /* 질문계시글 수정일 */
+             , open         /* 질문계시글 공개여부 */
+             , answered     /* 질문계시글 관리자 답변 여부 */
+          FROM (
+        SELECT
+               f.idx
+             , f.user_id
+             , f.title
+             , f.content
+             , f.reg_date
+             , f.mod_date
+             , f.open
+             , f.answered
+       ,(SELECT COUNT(*)
+          FROM faq          /* 질문계시판 테이블 */
+         WHERE idx >= f.idx)
+            AS rnum
+          FROM faq f
+          ) AS subquery
+         WHERE rnum >= #{startNo} AND rnum <= #{endNo}
+        ORDER BY rnum ASC
+        ]]>
+</select>
+    <select id="getTotalFaqCount" resultType="int">
+        SELECT              /* [질문계시판 개수 조회] FaqMapper.getTotalFaqCount */
+       COUNT(*)
+           FROM faq         /* 질문계시판 테이블 */
+    </select>
+    <select id="getFaq" parameterType="int" resultType="com.example.backend.domain.Faq">
+        SELECT              /* [질문계시판 상세내역 조회] FaqMapper.getFaq */
+               idx          /* 질문계시글 인덱스 */
+             , user_id      /* 질문계시글 작성자 아이디 */
+             , title        /* 질문계시글 제목 */
+             , content      /* 질문계시글 내용 */
+             , reg_date     /* 질문계시글 등록일 */
+             , mod_date     /* 질문계시글 수정일 */
+             , open         /* 질문계시글 공개여부 */
+             , answered     /* 질문계시글 관리자 답변 여부 */
+        FROM faq            /* 질문계시핀 테이블 */
+       WHERE idx = #{idx}   /* 질문계시글 인덱스 */
+    </select>
+    <update id="updateFaq" parameterType="com.example.backend.domain.Faq">
+        UPDATE                          /* [질문계시판 수정] FaqMapper.updateFaq */
+               faq                      /* 질문계시판 테이블 */
+           SET
+               content = #{content}     /* 질문계시글 내용 */
+             , title = #{title}         /* 질문계시글 제목 */
+             , open = #{open}           /* 질문계시글 공개여부 */
+             , mod_date = #{mod_date}   /* 질문계시글 수정일 */
+         WHERE idx = #{idx}             /* 질문계시글 인덱스 */
+    </update>
+    <delete id="deleteFaq" parameterType="int">
+        delete              /* [질문계시판 삭제] FaqMapper.deleteFaq */
+        from faq            /* 질문계시판 테이블 */
+        where idx = #{idx}  /* 질문계시글 인덱스 */
+    </delete>
+    <delete id="deleteFaqReply" parameterType="int">
+        delete                      /* [질문계시판 댓글 삭제] FaqMapper.deleteFaqReply */
+        from faq_reply              /* 질문계시판 댓글 테이블 */
+        where faq_id = #{faq_id}    /* 질문계시판 댓글 외부키 질문계시글 인덱스 */
+    </delete>
+    <insert id="insertFaqReply" parameterType="com.example.backend.domain.Faq_reply">
+        insert into                 /* [질문계시판 댓글 입력] FaqMapper.insertFaqReply */
+                    faq_reply       /* 질문계시판 댓글 테이블 */
+                    (faq_id         /* 질문계시판 댓글 외부키 질문계시글 인덱스 */
+                  , content         /* 질문계시판 댓글 내용 */
+                  , user_id         /* 질문계시판 댓글 작성자 */
+                  , reg_date        /* 질문계시판 댓글 등록일 */
+                  , mod_date)       /* 질문계시판 댓글 수정일 */
+        values
+                    (#{faq_id}
+                  , #{content}
+                  , #{user_id}
+                  , #{reg_date}
+                  , #{reg_date})
+    </insert>
+    <resultMap id="replyResultMap" type="com.example.backend.domain.Faq_reply">
+        <id property="idx" column="idx"/>
+        <result property="content" column="content"/>
+        <result property="user_id" column="user_id"/>
+        <result property="reg_date" column="reg_date"/>
+        <result property="mod_date" column="mod_date"/>
+    </resultMap>
+    <select id="getRepliesByFaqId" parameterType="int"  resultMap="replyResultMap">
+        select                        /* [질문계시판 댓글 조회] FaqMapper.getRepliesByFaqId */
+               idx                    /* 질문계시판 댓글 인덱스 */
+             , faq_id                 /* 질문계시판 댓글 외부키 질문계시글 인덱스 */
+             , content                /* 질문계시판 댓글 내용 */
+             , user_id                /* 질문계시판 댓글 작성자 */
+             , reg_date               /* 질문계시판 댓글 등록일 */
+             , mod_date               /* 질문계시판 댓글 수정일 */
+        from faq_reply                /* 질문계시판 댓글 테이블 */
+        where faq_id = #{faq_id}      /* 질문계시판 댓글 외부키 질문계시글 인덱스 */
+    </select>
+    <select id="getReplyById" parameterType="int" resultType="com.example.backend.domain.Faq_reply">
+        select               /* [질문계시판 댓글 조회] FaqMapper.getReplyById */
+                idx          /* 질문계시판 댓글 인덱스 */
+             , faq_id        /* 질문계시판 댓글 외부키 질문계시글 인덱스 */
+             , content       /* 질문계시판 댓글 내용 */
+             , user_id       /* 질문계시판 댓글 작성자 */
+             , reg_date      /* 질문계시판 댓글 등록일 */
+             , mod_date      /* 질문계시판 댓글 수정일 */
+        from faq_reply       /* 질문계시판 댓글 테이블 */
+       where idx = #{idx}    /* 질문계시판 댓글 인덱스 */
+    </select>
+    <update id="saveReply" parameterType="com.example.backend.domain.Faq_reply">
+        update                         /* [질문계시판 댓글 수정] FaqMapper.saveReply */
+               faq_reply               /* 질문계시판 댓글 테이블 */
+           set
+               content = #{content}    /* 질문계시판 댓글 테이블 */
+             , mod_date = #{mod_date}  /* 질문계시판 댓글 테이블 */
+        where idx = #{idx}
+    </update>
+    <delete id="deleteReply" parameterType="int">
+        delete                  /* [질문계시판 댓글 삭제] FaqMapper.deleteReply */
+          from faq_reply        /* 질문계시판 댓글 테이블 */
+         where idx = #{idx}     /* 질문계시판 댓글 테이블 */
+    </delete>
+    <select id="getMyFaqList" parameterType="com.example.backend.domain.MyQuestionRequest" resultType="com.example.backend.domain.Faq">
+        <![CDATA[
+        select                      /* [질문게시글의 상세내역 조회] FaqMapper.getMyFaqList */
+               idx                  /* 질문계시판 인덱스 */
+             , user_id              /* 질문계시판 작성자 */
+             , title                /* 질문계시판 제목 */
+             , content              /* 질문계시판 내용 */
+             , reg_date             /* 질문계시판 등록일 */
+             , mod_date             /* 질문계시판 수정일 */
+             , open                 /* 질문계시판 공개여부 */
+             , answered             /* 질문계시판 관리자 답변여부 */
+         from faq                   /* 질문계시판 테이블 */
+        where user_id = #{user_id}  /* 질문계시판 작성자 */
+     order by idx                   /* 질문계시판 인덱스 */
+        limit #{limit} offset #{offset}
+        ]]>
+    </select>
+    <select id="getTotalMyFaqCount" parameterType="String" resultType="int">
+        SELECT                      /* [질문계시판 개수 조회] FaqMapper.getTotalMyFaqCount */
+              COUNT(*)
+          FROM faq                  /* 질문계시판 테이블 */
+         where user_id = #{user_id} /* 질문계시판 작성자 */
+    </select>
+    <select id="getMyReplyList" parameterType="com.example.backend.domain.MyQuestionRequest" resultType="com.example.backend.domain.Faq">
+        SELECT faq.idx,
+               faq.user_id,
+               faq.title,
+               faq.content,
+               faq.reg_date,
+               faq.mod_date,
+               faq.open,
+               faq.answered
+        FROM faq
+        INNER JOIN faq_reply ON faq.idx = faq_reply.faq_id
+        WHERE faq_reply.user_id = #{user_id}
+        order by faq.idx
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getTotalMyFaqReplyCount" parameterType="String" resultType="int">
+        SELECT                      /* [질문게시글의 댓글 갯수 조회] FaqMapper.getTotalMyFaqReplyCount */
+               COUNT(*)
+          FROM faq_reply            /* 질문계시판 댓글 테이블 */
+         where user_id = #{user_id} /* 질문계시판 댓글 테이블 */
+    </select>
+</mapper>

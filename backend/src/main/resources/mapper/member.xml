@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.backend.mapper.member">
+
+    <select id="selectOneById" parameterType="String" resultType="com.example.backend.domain.Member">
+        SELECT                      /* [회원 조회] MemberMapper.selectOneById */
+               user_id              /* 회원 아이디 */
+             , user_pass            /* 회원 비밀번호 */
+             , user_email           /* 회원 이메일 */
+             , reg_date             /* 회원 등록일 */
+             , mod_date             /* 회원 수정일 */
+             , type                 /* 회원 관리자 여부 */
+             , user_profile         /* 회원 프로필 */
+             , enabled              /* 회원 활성화(시큐리티) */
+        from ta9_user               /* 회원 테이블 */
+       where binary user_id = #{id} /* 회원 아이디 */
+    </select>
+    <insert id="insertMember" parameterType="com.example.backend.domain.Member">
+        INSERT INTO                 /* [회원 입력] MemberMapper.insertMember */
+                    ta9_user        /* 회원 테이블 */
+                    (user_id        /* 회원 아이디 */
+                  , user_pass       /* 회원 비밀번호 */
+                  , user_email      /* 회원 이메일 */
+                  , reg_date        /* 회원 등록일 */
+                  , enabled         /* 회원 활성화(시큐리티) */
+                  , type            /* 회원 관리자 여부 */
+                  , user_profile)   /* 회원 프로필 */
+        VALUES
+                    (#{user_id}
+                  , #{user_pass}
+                  , #{user_email}
+                  , NOW()
+                  , '1'
+                  , '0'
+                  , #{user_profile})
+    </insert>
+    <select id="selectOneByEmail" parameterType="String" resultType="com.example.backend.domain.Member">
+        SELECT                      /* [이메일로 회워 조회] MemberMapper.selectOneByEmail */
+                user_id             /* 회원 아이디 */
+             , user_pass            /* 회원 비밀번호 */
+             , user_email           /* 회원 이메일 */
+             , reg_date             /* 회원 등록일 */
+             , mod_date             /* 회원 수정일 */
+             , type                 /* 회원 관리자 여부 */
+             , user_profile         /* 회원 프로필 */
+             , enabled              /* 회원 활성화(시큐리티) */
+        from ta9_user               /* 회원 테이블 */
+       where user_email = #{email}  /* 회원 이메일 */
+    </select>
+    <update id="updateMember" parameterType="com.example.backend.domain.Member">
+        UPDATE                                  /* [회원 수정] MemberMapper.updateMember */
+              ta9_user                          /* 회원 테이블 */
+           SET
+               user_pass = #{user_pass}         /* 회원 비밀번호 */
+             , user_email = #{user_email}       /* 회원 이메일 */
+             , user_profile = #{user_profile}   /* 회원 프로필 */
+             , mod_date = NOW()
+         WHERE user_id = #{user_id}             /* 회원 아이디 */
+    </update>
+    <delete id="deleteById" parameterType="String">
+        delete                                  /* [회원 삭제] MemberMapper.deleteById */
+          from
+              ta9_user                          /* 회원 테이블 */
+         where user_id = #{user_id}             /* 회원 아이디 */
+    </delete>
+    <delete id="deleteAccountById" parameterType="String">
+        delete                          /* [회원 가계부 삭제] MemberMapper.deleteAccountById */
+          from
+              account                   /* 게시판 테이블 */
+         where user_id = #{user_id}     /* 회원 아이디 */
+    </delete>
+    <delete id="deleteFaqById" parameterType="String">
+        delete                          /* [회원 질문글 삭제] MemberMapper.deleteFaqById */
+          from
+              faq                       /* 질문게시글 테이블 */
+         where user_id = #{user_id}     /* 회원 아이디 */
+    </delete>
+    <delete id="deleteFaq_replyById" parameterType="String">
+        delete                          /* [회원 댓글 삭제] MemberMapper.deleteFaq_replyById */
+          from faq_reply                /* 질문게시글 댓글 테이블 */
+         where user_id = #{user_id}     /* 회원 아이디 */
+    </delete>
+    <select id="isIdEmailDuplicate" parameterType="String" resultType="com.example.backend.domain.Member">
+        SELECT                          /* [회원 아이디 이메일 중복 조회] MemberMapper.isIdEmailDuplicate */
+               user_id                  /* 회원 아이디 */
+             , user_pass                /* 회원 비밀번호 */
+             , user_email               /* 회원 이메일 */
+             , reg_date                 /* 회원 등록일 */
+             , mod_date                 /* 회원 수정일 */
+             , type                     /* 회원 관리자 여부 */
+             , user_profile             /* 회원 프로필 */
+             , enabled                  /* 회원 활성화(시큐리티) */
+        from ta9_user                   /* 회원 테이블 */
+       where user_id = #{user_id}       /* 회원 아이디 */
+    </select>
+    <select id="findId" parameterType="String" resultType="String">
+        SELECT                              /* [회원 아이디 힌트 발송] MemberMapper.findId */
+              user_id                       /* 회원 아이디 */
+          from ta9_user                     /* 회원 테이블 */
+         where user_email = #{user_email}   /* 회원 이메일 */
+    </select>
+    <update id="updatePwd" parameterType="com.example.backend.domain.Member">
+        update                              /* [회원 임시 비밀번호 발송] MemberMapper.updatePwd */
+               ta9_user                     /* 회원 테이블 */
+           set
+               user_pass = #{user_pass}     /* 회원 비밀번호 */
+         where user_email = #{user_email}   /* 회원 이메일 */
+    </update>
+</mapper>
